@@ -101,14 +101,14 @@ async def scan(conn_settings: dict, pattern: str = None, pagination: RedisPagina
     """
     with get_conn(conn_settings) as conn:
         cursor, keys = _scan_(func=conn.scan, match=pattern,
-                              cursor=pagination.cursor, count=pagination.paginate_by)
+                              cursor=pagination.cursor, count=pagination.page_size)
         content = list()
         for key in keys:
             k_type = conn.type(key)
             content.append(KeyInfo(name=key,
                                    type=enums.RedisType(k_type),
                                    size=await get_len(conn=conn, key=key, key_type=k_type)))
-        return RedisPage(content=content, total=len(content), cursor=cursor, paginate_by=pagination.paginate_by)
+        return RedisPage(content=content, total=len(content), cursor=cursor, paginate_by=pagination.page_size)
 
 
 async def get(conn_settings: dict, key: str, match: str = None,
@@ -124,10 +124,10 @@ async def get(conn_settings: dict, key: str, match: str = None,
     """
     total = 0
     content = None
-    cursor = pagination.cursor + pagination.paginate_by
+    cursor = pagination.cursor + pagination.page_size
     with get_conn(conn_settings) as conn:
         if not conn.exists(key):
-            return RedisPage(content=content, total=total, cursor=cursor, paginate_by=pagination.paginate_by)
+            return RedisPage(content=content, total=total, cursor=cursor, paginate_by=pagination.page_size)
         # get type
         key_type = enums.RedisType(conn.type(key))
         # get value
@@ -149,7 +149,7 @@ async def get(conn_settings: dict, key: str, match: str = None,
             total = conn.zcard(name=key)
             cursor, content = conn.zscan(name=key, cursor=pagination.cursor, match=match)
             # cursor, content = conn.zscan(name=key, cursor=pagination.cursor, match=match, count=pagination.paginate_by)
-    return RedisPage(content=content, total=total, cursor=cursor, paginate_by=pagination.paginate_by)
+    return RedisPage(content=content, total=total, cursor=cursor, paginate_by=pagination.page_size)
 
 
 async def delete(*names, conn_settings: dict) -> Any:

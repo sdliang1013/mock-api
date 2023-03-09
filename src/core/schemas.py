@@ -12,38 +12,38 @@ BaseSchemaType = TypeVar("BaseSchemaType", bound=BaseModel)
 
 class Pagination(BaseModel):
     page: Optional[conint(gt=0, le=500)] = 1
-    paginate_by: Optional[conint(gt=0, le=500, multiple_of=5)] = 20
+    page_size: Optional[conint(gt=0, le=500, multiple_of=5)] = 20
 
     def offset_limit(self) -> Tuple[Union[int, None], Union[int, None]]:
-        if self.paginate_by and self.page:
-            return (self.page - 1) * self.paginate_by, self.paginate_by
+        if self.page_size and self.page:
+            return (self.page - 1) * self.page_size, self.page_size
         return None, None
 
     @property
     def offset(self) -> int:
-        if self.paginate_by and self.page:
-            return (self.page - 1) * self.paginate_by
+        if self.page_size and self.page:
+            return (self.page - 1) * self.page_size
         return 0
 
     @property
     def limit(self) -> int:
-        if self.paginate_by:
-            return self.paginate_by
+        if self.page_size:
+            return self.page_size
         return 20
 
     def paginate(self, total: int) -> 'Paginate':
-        return Paginate(page=self.page, paginate_by=self.paginate_by, total=total,
-                        total_page=math.ceil(total / self.paginate_by))
+        return Paginate(page=self.page, paginate_by=self.page_size, total=total,
+                        total_page=math.ceil(total / self.page_size))
 
 
 class Paginate(BaseModel):
     page: int
-    paginate_by: int
+    page_size: int
     total: int
 
     @property
     def total_page(self):
-        return math.ceil(self.total / self.paginate_by)
+        return math.ceil(self.total / self.page_size)
 
 
 class Page(GenericModel, Generic[DataType]):

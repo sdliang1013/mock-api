@@ -47,6 +47,25 @@ def query(conn: pymysql.Connect, sql: str, args: Optional[list] = None, close: b
             conn.close()
 
 
+def first(conn: pymysql.Connect, sql: str, args: Optional[list] = None, close: bool = False) -> dict:
+    """
+    查询第一条记录
+
+    :param conn:
+    :param sql:
+    :param args:
+    :param close:
+    :return:
+    """
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(query=sql, args=args)
+            return cursor.fetchone()
+    finally:
+        if close:
+            conn.close()
+
+
 def execute(conn: pymysql.Connect, sql: str, args: Optional[list] = None, close: bool = False) -> int:
     """
     执行
